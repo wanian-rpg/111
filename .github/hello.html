@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), 
+                        url('https://img12.360buyimg.com/ddimg/jfs/t1/291579/19/5608/53964/681ff705F2be59df9/0c55df8bd6f69ec9.jpg');
+            background-size: cover;
+            background-position: center;
+            font-family: "Microsoft YaHei", Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            width: 100%;
+            position: relative;
+        }
+
+        .title {
+            font-size: 3.5em;
+            color: #fff;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.8);
+            padding: 25px 40px;
+            background: rgba(0,0,0,0.6);
+            border-radius: 20px;
+            backdrop-filter: blur(5px);
+            margin-bottom: 80px;
+            animation: float 3s ease-in-out infinite;
+            position: relative;
+            z-index: 3;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .buttons {
+            display: flex;
+            gap: 60px;
+            position: relative;
+        }
+
+        button {
+            padding: 20px 50px;
+            border: none;
+            border-radius: 35px;
+            font-size: 1.8em;
+            cursor: pointer;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            min-width: 180px;
+            position: relative;
+        }
+
+        #yesBtn {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            z-index: 2;
+        }
+
+        #noBtn {
+            background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
+            color: white;
+            z-index: 1;
+        }
+
+        /* 修改后的正确动画 */
+        .yes-active {
+            transform: scale(5) !important;
+            z-index: 4 !important;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">你们是扫货吗？</h1>
+        <div class="buttons">
+            <button id="yesBtn">是</button>
+            <button id="noBtn">不是</button>
+        </div>
+    </div>
+
+    <script>
+        const yesBtn = document.getElementById('yesBtn');
+        const noBtn = document.getElementById('noBtn');
+        const container = document.querySelector('.container');
+
+        yesBtn.addEventListener('click', function() {
+            // 移除位移效果
+            this.style.transformOrigin = 'center center';
+            this.classList.add('yes-active');
+            
+            setTimeout(() => {
+                container.style.display = 'none';
+                window.open('https://img12.360buyimg.com/ddimg/jfs/t1/297667/4/5215/59329/681ff575F5bb91a4a/5626fb05af677b9b.jpg', '_blank');
+            }, 800);
+        });
+
+        noBtn.addEventListener('click', () => {
+            const currentScale = parseFloat(yesBtn.style.transform.replace('scale(', '')) || 1;
+            yesBtn.style.transform = `scale(${currentScale * 1.2})`;
+            yesBtn.style.zIndex = '4';
+        });
+    </script>
+</body>
+</html>
