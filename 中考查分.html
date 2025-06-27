@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>中考查分模拟</title>
+  <style>
+    /* 全局样式 */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
+    }
+
+    body {
+      background-color: #f5f5f5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    /* 弹窗样式 */
+    .modal-mask {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.4);
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-box {
+      width: 85%;
+      max-width: 320px;
+      background-color: #fff;
+      border-radius: 12px;
+      padding: 24px 16px;
+      text-align: center;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-text {
+      font-size: 15px;
+      color: #333;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+
+    .modal-btn {
+      background-color: #007aff;
+      color: #fff;
+      padding: 10px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    /* 查询容器 */
+    .query-container {
+      display: none;
+      width: 90%;
+      max-width: 400px;
+      background-color: #fff;
+      border-radius: 12px;
+      padding: 24px;
+      text-align: center;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+      margin-top: 20px;
+    }
+
+    .input-group {
+      margin-bottom: 16px;
+      text-align: left;
+    }
+
+    .input-group label {
+      display: block;
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 6px;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 15px;
+    }
+    
+    /* 输入错误时的边框颜色 */
+    .input-error {
+      border-color: #ff4d4f !important;
+    }
+
+    #query-btn {
+      background-color: #007aff;
+      color: #fff;
+      padding: 12px 28px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    /* 进度条样式 */
+    .progress-wrap {
+      width: 100%;
+      height: 6px;
+      background-color: #eee;
+      border-radius: 3px;
+      margin: 15px 0 20px;
+      display: none;
+      position: relative;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background-color: #007aff;
+      border-radius: 3px;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    .loading-text {
+      position: absolute;
+      bottom: -25px;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      font-size: 14px;
+      color: #666;
+      display: none;
+    }
+
+    /* 最终效果 */
+    .trick-container {
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      width: 100%;
+      padding: 0 20px;
+    }
+
+    .trick-text {
+      font-size: 10vw;
+      font-weight: bold;
+      color: #ff4d4f;
+      text-shadow: 0 2px 8px rgba(255, 77, 79, 0.6);
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .trick-subtext {
+      font-size: 6vw;
+      color: #333;
+      text-align: center;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <!-- 初始提示弹窗 -->
+  <div class="modal-mask" id="modalMask">
+    <div class="modal-box">
+      <p class="modal-text">
+        请各位考生注意，请勿传播、泄露分数线信息！<br>点击确定查看分数
+      </p>
+      <button class="modal-btn" id="confirmBtn">确定</button>
+    </div>
+  </div>
+
+  <!-- 查询页面容器 -->
+  <div class="query-container" id="queryContainer">
+    <div class="input-group">
+      <label for="exam-id">准考证号</label>
+      <input type="text" id="exam-id" placeholder="请输入11位数字" />
+    </div>
+    <div class="input-group">
+      <label for="name">姓名</label>
+      <input type="text" id="name" placeholder="请输入2-3位汉字/字母" />
+    </div>
+    <button id="query-btn">确认查询</button>
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-bar" id="progressBar"></div>
+      <div class="loading-text" id="loadingText">加载中...</div>
+    </div>
+  </div>
+
+  <!-- 最终“你被骗了”显示区域 -->
+  <div class="trick-container" id="trickContainer">
+    <div class="trick-text">分数：250</div>
+    <div class="trick-subtext" id="subText1">操你妈的</div>
+    <div class="trick-subtext" id="subText2">你看你考的烂分孩子</div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const modalMask = document.getElementById('modalMask');
+      const confirmBtn = document.getElementById('confirmBtn');
+      const queryContainer = document.getElementById('queryContainer');
+      const examIdInput = document.getElementById('exam-id');
+      const nameInput = document.getElementById('name');
+      const queryBtn = document.getElementById('query-btn');
+      const progressWrap = document.getElementById('progressWrap');
+      const progressBar = document.getElementById('progressBar');
+      const loadingText = document.getElementById('loadingText');
+      const trickContainer = document.getElementById('trickContainer');
+      const subText1 = document.getElementById('subText1');
+      const subText2 = document.getElementById('subText2');
+
+      // 关闭弹窗，显示查询页面
+      confirmBtn.addEventListener('click', () => {
+        modalMask.style.display = 'none';
+        queryContainer.style.display = 'block';
+      });
+
+      // 准考证号输入验证（仅允许11位数字）
+      examIdInput.addEventListener('input', function(e) {
+        e.target.value = e.target.value.replace(/[^\d]/g, ''); // 过滤非数字
+        if (e.target.value.length > 11) e.target.value = e.target.value.slice(0, 11); // 限制长度
+        e.target.classList.remove('input-error'); // 清除错误样式
+      });
+
+      // 姓名输入验证（允许汉字/字母，限制2-3位，禁止数字/符号）
+      nameInput.addEventListener('input', function(e) {
+        e.target.value = e.target.value.replace(/[^\u4e00-\u9fa5a-zA-Z]/g, ''); // 过滤非法字符
+        if (e.target.value.length > 15) e.target.value = e.target.value.slice(0, 15); // 限制长度
+        e.target.classList.remove('input-error'); // 清除错误样式
+      });
+
+      // 点击查询按钮
+      queryBtn.addEventListener('click', () => {
+        // 重置错误状态
+        examIdInput.classList.remove('input-error');
+        nameInput.classList.remove('input-error');
+
+        // 准考证号验证
+        let examId = examIdInput.value;
+        if (examId.length !== 11) {
+          examIdInput.classList.add('input-error');
+          return alert('准考证号必须为11位数字！');
+        }
+        if (!/^\d{11}$/.test(examId)) {
+          examIdInput.classList.add('input-error');
+          return alert('准考证号只能输入数字！');
+        }
+
+        // 姓名验证
+        let name = nameInput.value;
+        if (name.length < 2 || name.length > 3) {
+          nameInput.classList.add('input-error');
+          return alert('姓名应为2-3位汉字/字母！');
+        }
+        if (!/^[\u4e00-\u9fa5a-zA-Z]{2,3}$/.test(name)) {
+          nameInput.classList.add('input-error');
+          return alert('姓名不能包含数字或符号！');
+        }
+
+        // 字母输入时的提示（新增逻辑）
+        if (/[a-zA-Z]/.test(name)) {
+          if (confirm('检测到姓名包含字母，是否继续？')) {
+            // 用户确认后继续
+          } else {
+            return nameInput.focus(); // 取消则返回输入框
+          }
+        }
+
+        // 显示进度条和加载文字
+        progressWrap.style.display = 'block';
+        loadingText.style.display = 'block';
+
+        let progress = 0;
+        const timer = setInterval(() => {
+          const randomStep = Math.random() * 12 + 3;
+          progress += randomStep;
+          
+          if (progress >= 100) {
+            progress = 100;
+            clearInterval(timer);
+            loadingText.style.display = 'none';
+            
+            // 显示结果文字
+            setTimeout(() => {
+              queryContainer.style.display = 'none';
+              progressWrap.style.display = 'none';
+              trickContainer.style.display = 'flex';
+              
+              // 文字动画
+              subText1.style.opacity = '0';
+              subText2.style.opacity = '0';
+              subText1.style.transform = 'translateY(20px)';
+              subText2.style.transform = 'translateY(20px)';
+              
+              setTimeout(() => {
+                subText1.style.opacity = '1';
+                subText1.style.transform = 'translateY(0)';
+              }, 300);
+              
+              setTimeout(() => {
+                subText2.style.opacity = '1';
+                subText2.style.transform = 'translateY(0)';
+              }, 600);
+            }, 500);
+          }
+          
+          progressBar.style.width = progress + '%';
+        }, 300);
+      });
+    });
+  </script>
+</body>
+</html>
